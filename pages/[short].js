@@ -5,7 +5,7 @@ function Short() {
 }
 
 export async function getServerSideProps(context) {
-  console.log(context.params.short);
+  const { short, ...extraPaths } = context.params; // Capture the short code and additional paths
   const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
   const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
   const query = /* GraphQL */ `
@@ -19,7 +19,7 @@ export async function getServerSideProps(context) {
     }
   `;
   const variables = {
-    input: { short: { eq: context.params.short } },
+    input: { short: { eq: short } },
   };
   const options = {
     method: "POST",
@@ -32,11 +32,25 @@ export async function getServerSideProps(context) {
   const res = await fetch(GRAPHQL_ENDPOINT, options);
   const data = await res.json();
   const url = data.data.listURLS.items[0];
-  console.log(url.long);
+
+  if (!url) {
+    return {
+      notFound: true, // Return a 404 if the short URL doesn't exist
+    };
+  }
+
+  // Build the new destination URL by appending extra paths
+  const extraPathString = Object.values(extraPaths).join("/");
+  const redirectTo = extraPathString
+    ? `${url.long}/${extraPathString}`
+    : url.long;
+
   return {
     redirect: {
-      destination: url.long,
+      destination: redirectTo,
+      permanent: false,
     },
   };
 }
+
 export default Short;
