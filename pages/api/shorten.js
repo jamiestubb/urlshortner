@@ -54,13 +54,6 @@ export default async function handler(req, res) {
         },
       ],
     };
-
-    // Redirect to a custom error page
-    res.writeHead(302, { Location: "/404.html" }); // Use the path to your 404.php file
-    res.end();
-    return;
   }
-
-  // Return success response if no error occurred
   res.status(response.statusCode).json(response.data);
 }
