@@ -1,42 +1,45 @@
-import React from "react";
+// pages/[short].js
+import React, { useState } from "react";
 
-function Short() {
-  return <div></div>;
+function Short({ shortCode }) {
+  const [error, setError] = useState("");
+
+  return (
+    <div className="container">
+      <h1>Please complete the CAPTCHA to proceed</h1>
+      {error && <p className="error">{error}</p>}
+      <form
+        action="/api/verify-turnstile"
+        method="POST"
+        onSubmit={(e) => {
+          // Optional: prevent default and handle submission via AJAX for better UX
+          // e.preventDefault();
+          // Handle submission with fetch and set error state if needed
+        }}
+      >
+        <input type="hidden" name="shortCode" value={shortCode} />
+        <div
+          className="cf-turnstile"
+          data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        ></div>
+        <button type="submit">Continue</button>
+      </form>
+      <script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        async
+        defer
+      ></script>
+    </div>
+  );
 }
 
 export async function getServerSideProps(context) {
-  console.log(context.params.short);
-  const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
-  const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
-  const query = /* GraphQL */ `
-    query LIST_URLS($input: ModelURLFilterInput!) {
-      listURLS(filter: $input) {
-        items {
-          long
-          short
-        }
-      }
-    }
-  `;
-  const variables = {
-    input: { short: { eq: context.params.short } },
-  };
-  const options = {
-    method: "POST",
-    headers: {
-      "x-api-key": GRAPHQL_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query, variables }),
-  };
-  const res = await fetch(GRAPHQL_ENDPOINT, options);
-  const data = await res.json();
-  const url = data.data.listURLS.items[0];
-  console.log(url.long);
+  const shortCode = context.params.short;
   return {
-    redirect: {
-      destination: url.long,
+    props: {
+      shortCode,
     },
   };
 }
+
 export default Short;
