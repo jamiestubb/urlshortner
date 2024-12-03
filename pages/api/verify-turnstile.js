@@ -1,14 +1,31 @@
 // pages/api/verify-turnstile.js
-import nextConnect from "next-connect";
-import bodyParser from "body-parser";
 import axios from "axios";
+import formidable from "formidable";
 
-const handler = nextConnect();
+export const config = {
+  api: {
+    bodyParser: false, // Disables Next.js's default body parsing
+  },
+};
 
-handler.use(bodyParser.urlencoded({ extended: true }));
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    console.error("Invalid request method:", req.method);
+    res.status(405).json({ error: "Method Not Allowed" });
+    return;
+  }
 
-handler.post(async (req, res) => {
-  const { "cf-turnstile-response": token, shortCode } = req.body;
+  // Parse the form data using formidable
+  const data = await new Promise((resolve, reject) => {
+    const form = formidable();
+    form.parse(req, (err, fields) => {
+      if (err) return reject(err);
+      resolve(fields);
+    });
+  });
+
+  const token = data["cf-turnstile-response"];
+  const shortCode = data.shortCode;
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -107,6 +124,4 @@ handler.post(async (req, res) => {
       .status(500)
       .json({ error: "Internal server error", details: error.message });
   }
-});
-
-export default handler;
+}
