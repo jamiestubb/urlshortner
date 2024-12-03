@@ -30,6 +30,41 @@ function Short({ shortCode }) {
         )}
         <button type="submit">Continue</button>
       </form>
+
+      <style jsx>{`
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Ensures no scrolling happens due to excess width */
+    box-sizing: border-box; /* Prevents padding/margin issues */
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    width: 100vw; /* Full viewport width */
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    box-sizing: border-box; /* Ensures padding doesn't break the box model */
+  }
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+`}</style>
+
     </div>
   );
 }
