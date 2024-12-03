@@ -1,22 +1,25 @@
 // pages/[short].js
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Script from "next/script";
 
 function Short({ shortCode }) {
-  const [isClient, setIsClient] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState("");
+  const formRef = useRef(null); // Reference to the form element
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Callback function when CAPTCHA is solved
+  // Callback when CAPTCHA is solved
   const handleCaptchaSuccess = (token) => {
     console.log("CAPTCHA solved with token:", token);
-    setCaptchaToken(token);
+
+    // Add the token to the hidden input field
+    const captchaInput = formRef.current.querySelector("input[name='cf-turnstile-response']");
+    if (captchaInput) {
+      captchaInput.value = token;
+    }
+
+    // Automatically submit the form
+    formRef.current.submit();
   };
 
-  // Callback function when CAPTCHA fails
+  // Callback when CAPTCHA encounters an error
   const handleCaptchaError = () => {
     console.error("CAPTCHA verification failed.");
   };
@@ -25,48 +28,45 @@ function Short({ shortCode }) {
     <div className="container">
       <h1>Please complete the CAPTCHA to proceed</h1>
       <form
+        ref={formRef}
         action="/api/verify-turnstile"
         method="POST"
-        onSubmit={(e) => {
-          if (!captchaToken) {
-            e.preventDefault();
-            alert("Please complete the CAPTCHA challenge first.");
-          }
-        }}
       >
+        {/* Hidden inputs for shortCode and CAPTCHA token */}
         <input type="hidden" name="shortCode" value={shortCode} />
-        <input type="hidden" name="cf-turnstile-response" value={captchaToken} />
+        <input type="hidden" name="cf-turnstile-response" value="" />
 
-        {isClient && (
-          <>
-            <div
-              className="cf-turnstile"
-              data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-              data-callback="handleCaptchaSuccess"
-              data-error-callback="handleCaptchaError"
-            ></div>
-            <Script
-              src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-              async
-              defer
-            />
-          </>
-        )}
-
-        <button type="submit">Continue</button>
+        {/* CAPTCHA Widget */}
+        <div
+          className="cf-turnstile"
+          data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          data-callback="handleCaptchaSuccess"
+          data-error-callback="handleCaptchaError"
+        ></div>
       </form>
 
+      {/* Load the Turnstile script */}
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        async
+        defer
+      />
+
+      {/* Define CAPTCHA callbacks */}
       <Script>
         {`
           window.handleCaptchaSuccess = function(token) {
-            const event = new CustomEvent('captcha-success', { detail: token });
-            window.dispatchEvent(event);
+            const form = document.querySelector("form");
+            const input = form.querySelector("input[name='cf-turnstile-response']");
+            if (input) {
+              input.value = token;
+            }
+            form.submit();
           };
 
-          window.addEventListener('captcha-success', function(event) {
-            const token = event.detail;
-            console.log("CAPTCHA Success: ", token);
-          });
+          window.handleCaptchaError = function() {
+            console.error("CAPTCHA verification failed.");
+          };
         `}
       </Script>
 
@@ -92,6 +92,13 @@ function Short({ shortCode }) {
 
 export async function getServerSideProps(context) {
   const shortCode = context.params.short;
+
+  if (!shortCode) {
+    return {
+      notFound: true,
+    };
+  }
+
   return {
     props: {
       shortCode,
