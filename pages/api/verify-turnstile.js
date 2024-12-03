@@ -44,7 +44,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  // Temporarily hardcode the secret key for testing
+  const secretKey = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAAzbaFyF5jnLHaBSyZ5AuNHu098';
   console.log("TURNSTILE_SECRET_KEY:", secretKey ? 'Loaded' : 'Not Loaded');
 
   if (!secretKey) {
