@@ -6,7 +6,7 @@ function Short({ shortCode }) {
   const formRef = useRef(null);
 
   useEffect(() => {
-    console.log("Short code:", shortCode);
+    console.log("Short code in useEffect:", shortCode);
 
     // Callback when CAPTCHA is solved
     window.handleCaptchaSuccess = function (token) {
@@ -77,13 +77,13 @@ function Short({ shortCode }) {
 export async function getServerSideProps(context) {
   const shortCode = context.params.short;
 
+  console.log("getServerSideProps - shortCode:", shortCode);
+
   if (!shortCode) {
     return {
       notFound: true,
     };
   }
-
-  console.log("getServerSideProps - shortCode:", shortCode);
 
   return {
     props: {
