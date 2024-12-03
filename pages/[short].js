@@ -6,7 +6,7 @@ function Short({ shortCode }) {
   const formRef = useRef(null);
 
   useEffect(() => {
-    // Define CAPTCHA callbacks
+    // Callback when CAPTCHA is solved
     window.handleCaptchaSuccess = function (token) {
       console.log("CAPTCHA solved with token:", token);
 
@@ -27,10 +27,6 @@ function Short({ shortCode }) {
       // Automatically submit the form
       formRef.current.submit();
     };
-
-    window.handleCaptchaError = function () {
-      console.error("CAPTCHA verification failed.");
-    };
   }, []);
 
   return (
@@ -45,7 +41,6 @@ function Short({ shortCode }) {
           className="cf-turnstile"
           data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
           data-callback="handleCaptchaSuccess"
-          data-error-callback="handleCaptchaError"
         ></div>
       </form>
 

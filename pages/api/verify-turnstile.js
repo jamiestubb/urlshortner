@@ -79,6 +79,13 @@ export default async function handler(req, res) {
     // Fetch the long URL from the database based on shortCode
     const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
     const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
+
+    if (!GRAPHQL_ENDPOINT || !GRAPHQL_KEY) {
+      console.error("Missing GraphQL configuration.");
+      res.status(500).json({ error: "Server configuration error" });
+      return;
+    }
+
     const query = /* GraphQL */ `
       query LIST_URLS($input: ModelURLFilterInput!) {
         listURLS(filter: $input) {
@@ -104,8 +111,8 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = graphqlResponse.data;
-    const url = data.data.listURLS.items[0];
+    const graphqlData = graphqlResponse.data;
+    const url = graphqlData.data.listURLS.items[0];
 
     if (!url) {
       console.error("No URL found for shortCode:", shortCode);
