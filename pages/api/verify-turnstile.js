@@ -1,13 +1,14 @@
 // pages/api/verify-turnstile.js
-import nextConnect from 'next-connect';
-import bodyParser from 'body-parser';
+import nextConnect from "next-connect";
+import bodyParser from "body-parser";
+import axios from "axios";
 
 const handler = nextConnect();
 
 handler.use(bodyParser.urlencoded({ extended: true }));
 
 handler.post(async (req, res) => {
-  const { 'cf-turnstile-response': token, shortCode } = req.body;
+  const { "cf-turnstile-response": token, shortCode } = req.body;
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -28,25 +29,20 @@ handler.post(async (req, res) => {
   const formData = new URLSearchParams();
   formData.append("secret", secretKey);
   formData.append("response", token);
-  // Optionally include remoteip
-  // formData.append("remoteip", req.headers["x-forwarded-for"] || req.socket.remoteAddress);
 
   try {
-    const verificationResponse = await fetch(verificationURL, {
-      method: "POST",
-      body: formData,
-    });
+    // Turnstile verification with axios
+    const verificationResponse = await axios.post(
+      verificationURL,
+      formData.toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
 
-    if (!verificationResponse.ok) {
-      console.error(
-        "Turnstile verification request failed with status:",
-        verificationResponse.status
-      );
-      res.status(500).json({ error: "Turnstile verification request failed" });
-      return;
-    }
-
-    const verificationResult = await verificationResponse.json();
+    const verificationResult = verificationResponse.data;
     console.log("Turnstile verification result:", verificationResult);
 
     if (!verificationResult.success) {
@@ -79,16 +75,19 @@ handler.post(async (req, res) => {
     const variables = {
       input: { short: { eq: shortCode } },
     };
-    const options = {
-      method: "POST",
-      headers: {
-        "x-api-key": GRAPHQL_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query, variables }),
-    };
-    const fetchResponse = await fetch(GRAPHQL_ENDPOINT, options);
-    const data = await fetchResponse.json();
+
+    const graphqlResponse = await axios.post(
+      GRAPHQL_ENDPOINT,
+      { query, variables },
+      {
+        headers: {
+          "x-api-key": GRAPHQL_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const data = graphqlResponse.data;
     const url = data.data.listURLS.items[0];
 
     if (!url) {
@@ -103,7 +102,7 @@ handler.post(async (req, res) => {
     res.writeHead(302, { Location: longUrl });
     res.end();
   } catch (error) {
-    console.error("Internal server error:", error.message);
+    console.error("Internal server error:", error);
     res
       .status(500)
       .json({ error: "Internal server error", details: error.message });

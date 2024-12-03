@@ -2,22 +2,21 @@
 import React from "react";
 import Link from "next/link";
 import isURL from "validator/lib/isURL";
+import axios from "axios";
 
 function Home() {
   const [isValidURL, setIsValidURL] = React.useState(true);
   const [url, setURL] = React.useState({ long: "", short: "" });
 
   async function submitUrl(url) {
-    const res = await fetch("/api/shorten", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(url),
-    });
-    const data = await res.json();
-    console.log(data);
-    return data.data.createURL;
+    try {
+      const response = await axios.post("/api/shorten", url);
+      console.log(response.data);
+      return response.data.data.createURL;
+    } catch (error) {
+      console.error("Error submitting URL:", error);
+      return null;
+    }
   }
 
   return (
@@ -41,7 +40,9 @@ function Home() {
                     if (isURL(e.target.value)) {
                       setIsValidURL(true);
                       const url = await submitUrl({ longUrl: e.target.value });
-                      setURL(url);
+                      if (url) {
+                        setURL(url);
+                      }
                     } else {
                       setIsValidURL(false);
                     }
@@ -54,7 +55,7 @@ function Home() {
                 </kbd>
               </div>
             </div>
-            {url.short.length > 0 && (
+            {url && url.short && url.short.length > 0 && (
               <div className="flex gap-4 mt-6 p-5 rounded-md border border-cyan-500 bg-cyan-50 items-center">
                 <p className="line-clamp-1">{url.long}</p>
                 <p className="text-cyan-700">
