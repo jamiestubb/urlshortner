@@ -1,34 +1,36 @@
 // pages/[short].js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Script from "next/script";
 
 function Short({ shortCode }) {
   const [error, setError] = useState("");
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <div className="container">
       <h1>Please complete the CAPTCHA to proceed</h1>
       {error && <p className="error">{error}</p>}
-      <form
-        action="/api/verify-turnstile"
-        method="POST"
-        onSubmit={(e) => {
-          // Optional: prevent default and handle submission via AJAX for better UX
-          // e.preventDefault();
-          // Handle submission with fetch and set error state if needed
-        }}
-      >
+      <form action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
-        <div
-          className="cf-turnstile"
-          data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-        ></div>
+        {isClient && (
+          <>
+            <div
+              className="cf-turnstile"
+              data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            ></div>
+            <Script
+              src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+              async
+              defer
+            />
+          </>
+        )}
         <button type="submit">Continue</button>
       </form>
-      <script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-        async
-        defer
-      ></script>
     </div>
   );
 }
