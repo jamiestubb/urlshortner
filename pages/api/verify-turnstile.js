@@ -24,8 +24,19 @@ export default async function handler(req, res) {
     });
   });
 
-  const token = data["cf-turnstile-response"];
-  const shortCode = data.shortCode;
+  console.log("Form data received:", data);
+
+  // Ensure token and shortCode are strings
+  const token = Array.isArray(data["cf-turnstile-response"])
+    ? data["cf-turnstile-response"][0]
+    : data["cf-turnstile-response"];
+
+  const shortCode = Array.isArray(data.shortCode)
+    ? data.shortCode[0]
+    : data.shortCode;
+
+  console.log("Token:", token);
+  console.log("ShortCode:", shortCode);
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -34,6 +45,8 @@ export default async function handler(req, res) {
   }
 
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  console.log("TURNSTILE_SECRET_KEY:", secretKey ? 'Loaded' : 'Not Loaded');
+
   if (!secretKey) {
     console.error("Missing Turnstile secret key.");
     res.status(500).json({ error: "Server configuration error" });
@@ -80,11 +93,17 @@ export default async function handler(req, res) {
     const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
     const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
 
+    console.log("Environment Variables in /api/verify-turnstile:");
+    console.log("GRAPHQL_ENDPOINT:", GRAPHQL_ENDPOINT ? 'Loaded' : 'Not Loaded');
+    console.log("GRAPHQL_KEY:", GRAPHQL_KEY ? 'Loaded' : 'Not Loaded');
+
     if (!GRAPHQL_ENDPOINT || !GRAPHQL_KEY) {
       console.error("Missing GraphQL configuration.");
       res.status(500).json({ error: "Server configuration error" });
       return;
     }
+
+    console.log("Proceeding to fetch long URL for shortCode:", shortCode);
 
     const query = /* GraphQL */ `
       query LIST_URLS($input: ModelURLFilterInput!) {
@@ -100,6 +119,8 @@ export default async function handler(req, res) {
       input: { short: { eq: shortCode } },
     };
 
+    console.log("Variables for GraphQL query:", variables);
+
     const graphqlResponse = await axios.post(
       GRAPHQL_ENDPOINT,
       { query, variables },
@@ -112,6 +133,8 @@ export default async function handler(req, res) {
     );
 
     const graphqlData = graphqlResponse.data;
+    console.log("Response from GraphQL API:", graphqlData);
+
     const url = graphqlData.data.listURLS.items[0];
 
     if (!url) {
@@ -120,9 +143,12 @@ export default async function handler(req, res) {
       return;
     }
 
+    console.log("Found URL:", url);
+
     const longUrl = url.long;
 
     // Redirect to the long URL
+    console.log("Redirecting to:", longUrl);
     res.writeHead(302, { Location: longUrl });
     res.end();
   } catch (error) {

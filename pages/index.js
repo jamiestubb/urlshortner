@@ -10,8 +10,9 @@ function Home() {
 
   async function submitUrl(url) {
     try {
+      console.log("Submitting URL:", url);
       const response = await axios.post("/api/shorten", url);
-      console.log(response.data);
+      console.log("Response from /api/shorten:", response.data);
       return response.data.data.createURL;
     } catch (error) {
       console.error("Error submitting URL:", error);
