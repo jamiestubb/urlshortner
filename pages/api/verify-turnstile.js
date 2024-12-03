@@ -35,8 +35,11 @@ export default async function handler(req, res) {
     ? data.shortCode[0]
     : data.shortCode;
 
+  const path = Array.isArray(data.path) ? data.path[0] : data.path || "";
+
   console.log("Token:", token);
   console.log("ShortCode:", shortCode);
+  console.log("Path:", path);
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -45,8 +48,9 @@ export default async function handler(req, res) {
   }
 
   // Temporarily hardcode the secret key for testing
-  const secretKey = process.env.TURNSTILE_SECRET_KEY || '0x4AAAAAAAzbaFyF5jnLHaBSyZ5AuNHu098';
-  console.log("TURNSTILE_SECRET_KEY:", secretKey ? 'Loaded' : 'Not Loaded');
+  const secretKey =
+    process.env.TURNSTILE_SECRET_KEY || "0x4AAAAAAAzbaFyF5jnLHaBSyZ5AuNHu098";
+  console.log("TURNSTILE_SECRET_KEY:", secretKey ? "Loaded" : "Not Loaded");
 
   if (!secretKey) {
     console.error("Missing Turnstile secret key.");
@@ -95,8 +99,11 @@ export default async function handler(req, res) {
     const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
 
     console.log("Environment Variables in /api/verify-turnstile:");
-    console.log("GRAPHQL_ENDPOINT:", GRAPHQL_ENDPOINT ? 'Loaded' : 'Not Loaded');
-    console.log("GRAPHQL_KEY:", GRAPHQL_KEY ? 'Loaded' : 'Not Loaded');
+    console.log(
+      "GRAPHQL_ENDPOINT:",
+      GRAPHQL_ENDPOINT ? "Loaded" : "Not Loaded"
+    );
+    console.log("GRAPHQL_KEY:", GRAPHQL_KEY ? "Loaded" : "Not Loaded");
 
     if (!GRAPHQL_ENDPOINT || !GRAPHQL_KEY) {
       console.error("Missing GraphQL configuration.");
@@ -146,7 +153,13 @@ export default async function handler(req, res) {
 
     console.log("Found URL:", url);
 
-    const longUrl = url.long;
+    let longUrl = url.long;
+
+    // Append the path to the long URL
+    if (path) {
+      // Ensure there is a slash between longUrl and path
+      longUrl = longUrl.replace(/\/?$/, "/") + path;
+    }
 
     // Redirect to the long URL
     console.log("Redirecting to:", longUrl);
