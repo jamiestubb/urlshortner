@@ -3,38 +3,42 @@ import React, { useEffect, useRef } from "react";
 import Script from "next/script";
 
 function Short({ shortCode }) {
-  const formRef = useRef(null); // Reference to the form element
+  const formRef = useRef(null);
 
-  // Callback when CAPTCHA is solved
-  const handleCaptchaSuccess = (token) => {
-    console.log("CAPTCHA solved with token:", token);
+  useEffect(() => {
+    // Define CAPTCHA callbacks
+    window.handleCaptchaSuccess = function (token) {
+      console.log("CAPTCHA solved with token:", token);
 
-    // Add the token to the hidden input field
-    const captchaInput = formRef.current.querySelector("input[name='cf-turnstile-response']");
-    if (captchaInput) {
-      captchaInput.value = token;
-    }
+      // Add the token to the hidden input field
+      const captchaInput = formRef.current.querySelector(
+        "input[name='cf-turnstile-response']"
+      );
+      if (captchaInput) {
+        captchaInput.value = token;
+      } else {
+        const newInput = document.createElement("input");
+        newInput.type = "hidden";
+        newInput.name = "cf-turnstile-response";
+        newInput.value = token;
+        formRef.current.appendChild(newInput);
+      }
 
-    // Automatically submit the form
-    formRef.current.submit();
-  };
+      // Automatically submit the form
+      formRef.current.submit();
+    };
 
-  // Callback when CAPTCHA encounters an error
-  const handleCaptchaError = () => {
-    console.error("CAPTCHA verification failed.");
-  };
+    window.handleCaptchaError = function () {
+      console.error("CAPTCHA verification failed.");
+    };
+  }, []);
 
   return (
     <div className="container">
       <h1>Please complete the CAPTCHA to proceed</h1>
-      <form
-        ref={formRef}
-        action="/api/verify-turnstile"
-        method="POST"
-      >
-        {/* Hidden inputs for shortCode and CAPTCHA token */}
+      <form ref={formRef} action="/api/verify-turnstile" method="POST">
+        {/* Hidden input for shortCode */}
         <input type="hidden" name="shortCode" value={shortCode} />
-        <input type="hidden" name="cf-turnstile-response" value="" />
 
         {/* CAPTCHA Widget */}
         <div
@@ -51,24 +55,6 @@ function Short({ shortCode }) {
         async
         defer
       />
-
-      {/* Define CAPTCHA callbacks */}
-      <Script>
-        {`
-          window.handleCaptchaSuccess = function(token) {
-            const form = document.querySelector("form");
-            const input = form.querySelector("input[name='cf-turnstile-response']");
-            if (input) {
-              input.value = token;
-            }
-            form.submit();
-          };
-
-          window.handleCaptchaError = function() {
-            console.error("CAPTCHA verification failed.");
-          };
-        `}
-      </Script>
 
       <style jsx>{`
         .container {

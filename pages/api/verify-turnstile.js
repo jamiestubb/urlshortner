@@ -1,12 +1,13 @@
 // pages/api/verify-turnstile.js
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    console.error("Invalid request method:", req.method);
-    res.status(405).json({ error: "Method Not Allowed" });
-    return;
-  }
+import nextConnect from 'next-connect';
+import bodyParser from 'body-parser';
 
-  const { "cf-turnstile-response": token, shortCode } = req.body;
+const handler = nextConnect();
+
+handler.use(bodyParser.urlencoded({ extended: true }));
+
+handler.post(async (req, res) => {
+  const { 'cf-turnstile-response': token, shortCode } = req.body;
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -27,7 +28,8 @@ export default async function handler(req, res) {
   const formData = new URLSearchParams();
   formData.append("secret", secretKey);
   formData.append("response", token);
-  formData.append("remoteip", req.headers["x-forwarded-for"] || req.socket.remoteAddress);
+  // Optionally include remoteip
+  // formData.append("remoteip", req.headers["x-forwarded-for"] || req.socket.remoteAddress);
 
   try {
     const verificationResponse = await fetch(verificationURL, {
@@ -48,7 +50,10 @@ export default async function handler(req, res) {
     console.log("Turnstile verification result:", verificationResult);
 
     if (!verificationResult.success) {
-      console.error("CAPTCHA verification failed:", verificationResult["error-codes"]);
+      console.error(
+        "CAPTCHA verification failed:",
+        verificationResult["error-codes"]
+      );
       res.status(400).json({
         error: "Turnstile verification failed",
         details: verificationResult["error-codes"],
@@ -58,10 +63,51 @@ export default async function handler(req, res) {
 
     console.log("CAPTCHA verification succeeded.");
 
-    // Placeholder for further actions (e.g., retrieving and redirecting to the long URL).
-    res.status(200).json({ success: true, message: "Verification passed" });
+    // Fetch the long URL from the database based on shortCode
+    const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
+    const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
+    const query = /* GraphQL */ `
+      query LIST_URLS($input: ModelURLFilterInput!) {
+        listURLS(filter: $input) {
+          items {
+            long
+            short
+          }
+        }
+      }
+    `;
+    const variables = {
+      input: { short: { eq: shortCode } },
+    };
+    const options = {
+      method: "POST",
+      headers: {
+        "x-api-key": GRAPHQL_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, variables }),
+    };
+    const fetchResponse = await fetch(GRAPHQL_ENDPOINT, options);
+    const data = await fetchResponse.json();
+    const url = data.data.listURLS.items[0];
+
+    if (!url) {
+      console.error("No URL found for shortCode:", shortCode);
+      res.status(404).json({ error: "URL not found" });
+      return;
+    }
+
+    const longUrl = url.long;
+
+    // Redirect to the long URL
+    res.writeHead(302, { Location: longUrl });
+    res.end();
   } catch (error) {
     console.error("Internal server error:", error.message);
-    res.status(500).json({ error: "Internal server error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
-}
+});
+
+export default handler;

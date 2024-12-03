@@ -1,14 +1,12 @@
+// pages/index.js
 import React from "react";
 import Link from "next/link";
 import isURL from "validator/lib/isURL";
 
 function Home() {
   const [isValidURL, setIsValidURL] = React.useState(true);
-
-  //Add this
   const [url, setURL] = React.useState({ long: "", short: "" });
 
-  // Add this
   async function submitUrl(url) {
     const res = await fetch("/api/shorten", {
       method: "POST",
@@ -42,7 +40,6 @@ function Home() {
                   if (e.key === "Enter") {
                     if (isURL(e.target.value)) {
                       setIsValidURL(true);
-                      //Add these
                       const url = await submitUrl({ longUrl: e.target.value });
                       setURL(url);
                     } else {
@@ -57,7 +54,6 @@ function Home() {
                 </kbd>
               </div>
             </div>
-            {/* Update this section */}
             {url.short.length > 0 && (
               <div className="flex gap-4 mt-6 p-5 rounded-md border border-cyan-500 bg-cyan-50 items-center">
                 <p className="line-clamp-1">{url.long}</p>

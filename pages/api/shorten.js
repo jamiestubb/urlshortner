@@ -1,3 +1,4 @@
+// pages/api/shorten.js
 import { customAlphabet, urlAlphabet } from "nanoid";
 
 export default async function handler(req, res) {
