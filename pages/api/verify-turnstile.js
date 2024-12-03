@@ -1,3 +1,4 @@
+// pages/api/verify-turnstile.js
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     console.error("Invalid request method:", req.method);
@@ -7,9 +8,6 @@ export default async function handler(req, res) {
 
   const { "cf-turnstile-response": token, shortCode } = req.body;
 
-  console.log("Received token:", token);
-  console.log("Received shortCode:", shortCode);
-
   if (!token) {
     console.error("No CAPTCHA token provided.");
     res.status(400).json({ error: "No CAPTCHA token provided" });
@@ -17,15 +15,21 @@ export default async function handler(req, res) {
   }
 
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  if (!secretKey) {
+    console.error("Missing Turnstile secret key.");
+    res.status(500).json({ error: "Server configuration error" });
+    return;
+  }
+
   const verificationURL =
     "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
   const formData = new URLSearchParams();
   formData.append("secret", secretKey);
   formData.append("response", token);
+  formData.append("remoteip", req.headers["x-forwarded-for"] || req.socket.remoteAddress);
 
   try {
-    console.log("Sending verification request to Turnstile...");
     const verificationResponse = await fetch(verificationURL, {
       method: "POST",
       body: formData,
@@ -53,57 +57,9 @@ export default async function handler(req, res) {
     }
 
     console.log("CAPTCHA verification succeeded.");
-    const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
-    const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
 
-    const query = /* GraphQL */ `
-      query LIST_URLS($input: ModelURLFilterInput!) {
-        listURLS(filter: $input) {
-          items {
-            long
-            short
-          }
-        }
-      }
-    `;
-    const variables = {
-      input: { short: { eq: shortCode } },
-    };
-    const options = {
-      method: "POST",
-      headers: {
-        "x-api-key": GRAPHQL_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query, variables }),
-    };
-
-    console.log("Fetching long URL from GraphQL...");
-    const fetchResponse = await fetch(GRAPHQL_ENDPOINT, options);
-
-    if (!fetchResponse.ok) {
-      console.error(
-        "GraphQL request failed with status:",
-        fetchResponse.status
-      );
-      res.status(500).json({ error: "Failed to fetch data from GraphQL" });
-      return;
-    }
-
-    const data = await fetchResponse.json();
-    console.log("GraphQL response data:", data);
-
-    if (!data.data || !data.data.listURLS.items.length) {
-      console.error("Short URL not found in the database.");
-      res.status(404).json({ error: "Short URL not found" });
-      return;
-    }
-
-    const longUrl = data.data.listURLS.items[0].long;
-
-    console.log("Redirecting to:", longUrl);
-    res.writeHead(302, { Location: longUrl });
-    res.end();
+    // Placeholder for further actions (e.g., retrieving and redirecting to the long URL).
+    res.status(200).json({ success: true, message: "Verification passed" });
   } catch (error) {
     console.error("Internal server error:", error.message);
     res.status(500).json({ error: "Internal server error", details: error.message });
