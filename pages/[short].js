@@ -3,17 +3,16 @@ import React, { useState, useEffect } from "react";
 import Script from "next/script";
 
 function Short({ shortCode }) {
-  const [error, setError] = useState("");
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // This ensures that the code runs only on the client side
     setIsClient(true);
   }, []);
 
   return (
     <div className="container">
       <h1>Please complete the CAPTCHA to proceed</h1>
-      {error && <p className="error">{error}</p>}
       <form action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
         {isClient && (

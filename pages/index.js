@@ -62,7 +62,7 @@ function Home() {
               <div className="flex gap-4 mt-6 p-5 rounded-md border border-cyan-500 bg-cyan-50 items-center">
                 <p className="line-clamp-1">{url.long}</p>
                 <p className="text-cyan-700">
-                  <Link href={`/${url.short}`}> utm.link/{url.short}</Link>
+                  <Link href={`/${url.short}`}> lg.sh/{url.short}</Link>
                 </p>
               </div>
             )}
@@ -72,6 +72,5 @@ function Home() {
     </main>
   );
 }
-
 
 export default Home;
