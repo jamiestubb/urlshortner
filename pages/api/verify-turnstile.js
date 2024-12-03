@@ -49,7 +49,7 @@ export default async function handler(req, res) {
 
   if (!secretKey) {
     console.error("Missing Turnstile secret key.");
-    res.status(500).json({ error: "Turnstile Server configuration error" });
+    res.status(500).json({ error: "Server configuration error" });
     return;
   }
 
@@ -99,7 +99,7 @@ export default async function handler(req, res) {
 
     if (!GRAPHQL_ENDPOINT || !GRAPHQL_KEY) {
       console.error("Missing GraphQL configuration.");
-      res.status(500).json({ error: "GraphQL Server configuration error" });
+      res.status(500).json({ error: "Server configuration error" });
       return;
     }
 
