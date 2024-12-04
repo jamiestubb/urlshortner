@@ -1,6 +1,6 @@
 // pages/api/shorten.js
 import axios from "axios";
-import { customAlphabet, urlAlphabet } from "nanoid";
+import { customAlphabet } from "nanoid";
 
 export default async function handler(req, res) {
   const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
@@ -39,10 +39,11 @@ export default async function handler(req, res) {
   `;
 
   const generatedUrls = [];
+  const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"; // Only letters
 
   try {
     for (let i = 0; i < count; i++) {
-      const shortCode = customAlphabet(urlAlphabet, 5)();
+      const shortCode = customAlphabet(alphabet, 5)(); // Use the custom alphabet
       console.log(`Generated shortCode ${i + 1}:`, shortCode);
 
       const variables = {
