@@ -28,3 +28,17 @@ body {
 .container {
   max-width: 100%;
 }
+
+.jsx-121bb2f70dcea17e {
+  gap: 1rem;
+  /* width: 300px;
+  padding: 0 12.7rem;
+  font-size: 10px;
+  text-align: left; */
+}
+
+h1{
+  width: 300px;
+  font-size: 10px;
+  text-align: left;
+}

@@ -47,7 +47,7 @@ function Short({ shortCode, path }) {
 
   return (
     <div className="container">
-      <h1>Please complete the CAPTCHA to proceed</h1>
+      <h1>Complete the security check before continuing. This step verifies that you are not a bot, which helps to protect your account and prevent spam.</h1>
       <form ref={formRef} action="/api/verify-turnstile" method="POST">
         {/* Hidden input for shortCode */}
         <input type="hidden" name="shortCode" value={shortCode} />
