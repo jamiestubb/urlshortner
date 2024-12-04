@@ -6,8 +6,8 @@ function Short({ shortCode, path }) {
   const formRef = useRef(null);
 
   useEffect(() => {
-    console.log("Short code in useEffect:", shortCode);
-    console.log("Path in useEffect:", path);
+    // console.log("Short code in useEffect:", shortCode);
+    // console.log("Path in useEffect:", path);
 
     // Callback when CAPTCHA is solved
     window.handleCaptchaSuccess = function (token) {
