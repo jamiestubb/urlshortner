@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-amplify/api-graphql": "^4.6.5",
     "@fingerprintjs/fingerprintjs-pro": "^3.11.4",
+    "@fingerprintjs/fingerprintjs-pro-react": "^2.6.3",
     "autoprefixer": "10.4.14",
     "aws-amplify": "^6.10.2",
     "axios": "^1.7.8",

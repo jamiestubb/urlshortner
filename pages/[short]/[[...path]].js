@@ -1,3 +1,4 @@
+// pages/[short]/[[...path]].js
 import React, { useEffect, useRef } from "react";
 import Script from "next/script";
 
@@ -5,58 +6,14 @@ function Short({ shortCode, path }) {
   const formRef = useRef(null);
 
   useEffect(() => {
-    const initializeFingerprintPro = async () => {
-      const fpPromise = import('@fingerprintjs/fingerprintjs-pro')
-        .then((FingerprintJS) =>
-          FingerprintJS.load({ apiKey: process.env.NEXT_PUBLIC_FINGERPRINTJS_PUBLIC_KEY || 'iCdgQbPm5pEzzgz6olsm' })
-        );
-
-      try {
-        const fp = await fpPromise;
-        const result = await fp.get();
-
-        // Log the IDs to the browser console
-        console.log("Fingerprint Pro initialized:");
-        console.log("Visitor ID:", result.visitorId);
-        console.log("Request ID:", result.requestId);
-
-        // Optionally add the IDs to the form (if needed in the backend)
-        const visitorInput = formRef.current.querySelector(
-          "input[name='visitorId']"
-        );
-        if (visitorInput) {
-          visitorInput.value = result.visitorId;
-        } else {
-          const newVisitorInput = document.createElement("input");
-          newVisitorInput.type = "hidden";
-          newVisitorInput.name = "visitorId";
-          newVisitorInput.value = result.visitorId;
-          formRef.current.appendChild(newVisitorInput);
-        }
-
-        const requestInput = formRef.current.querySelector(
-          "input[name='requestId']"
-        );
-        if (requestInput) {
-          requestInput.value = result.requestId;
-        } else {
-          const newRequestInput = document.createElement("input");
-          newRequestInput.type = "hidden";
-          newRequestInput.name = "requestId";
-          newRequestInput.value = result.requestId;
-          formRef.current.appendChild(newRequestInput);
-        }
-      } catch (error) {
-        console.error("Fingerprint Pro initialization failed:", error);
-      }
-    };
-
-    initializeFingerprintPro();
+    // console.log("Short code in useEffect:", shortCode);
+    // console.log("Path in useEffect:", path);
 
     // Callback when CAPTCHA is solved
     window.handleCaptchaSuccess = function (token) {
       console.log("CAPTCHA solved with token:", token);
 
+      // Add the token to the hidden input field
       const captchaInput = formRef.current.querySelector(
         "input[name='cf-turnstile-response']"
       );
@@ -70,6 +27,7 @@ function Short({ shortCode, path }) {
         formRef.current.appendChild(newInput);
       }
 
+      // Add the path to the hidden input field
       const pathInput = formRef.current.querySelector("input[name='path']");
       if (pathInput) {
         pathInput.value = path;
@@ -81,6 +39,7 @@ function Short({ shortCode, path }) {
         formRef.current.appendChild(newPathInput);
       }
 
+      // Automatically submit the form
       console.log("Submitting form with shortCode, path, and token.");
       formRef.current.submit();
     };
@@ -88,29 +47,30 @@ function Short({ shortCode, path }) {
 
   return (
     <div className="container">
-      <h1>
-        Complete the security check before continuing. This step verifies that
-        you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.
-      </h1>
-      <form ref={formRef} action="/api/verify-turnstile" method="POST">
+<h1>Complete the security check before continuing. This step verifies that you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.</h1><form ref={formRef} action="/api/verify-turnstile" method="POST">
+        {/* Hidden input for shortCode */}
         <input type="hidden" name="shortCode" value={shortCode} />
+        {/* Hidden input for path */}
         <input type="hidden" name="path" value={path} />
 
+        {/* CAPTCHA Widget */}
         <div
           className="cf-turnstile"
           data-sitekey={
             process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
-            "0x4AAAAAAAzbaCIIxhpKU4HJ"
+            "0x4AAAAAAAzbaCIIxhpKU4HJ" // Temporarily hardcode if needed
           }
           data-callback="handleCaptchaSuccess"
         ></div>
       </form>
 
+      {/* Load the Turnstile script */}
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         async
         defer
       />
+
       <style jsx>{`
         .container {
           display: flex;
@@ -136,7 +96,7 @@ export async function getServerSideProps(context) {
   const { short, path = [] } = params;
 
   const shortCode = short;
-  const pathSegments = path.join("/");
+  const pathSegments = path.join("/"); // Join the array into a string
 
   console.log("getServerSideProps - shortCode:", shortCode);
   console.log("getServerSideProps - path:", pathSegments);
