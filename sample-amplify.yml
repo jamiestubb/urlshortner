@@ -3,20 +3,16 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm ci --cache .npm --prefer-offline
     build:
       commands:
+        - printenv | grep -e GRAPHQL_ENDPOINT -e GRAPHQL_KEY >> .env.production
         - npm run build
   artifacts:
-    baseDirectory: out
+    baseDirectory: .next
     files:
-      - '**/*'
+      - "**/*"
   cache:
     paths:
-      - node_modules/**/*
-  environment:
-    variables:
-      GRAPHQL_ENDPOINT: $GRAPHQL_ENDPOINT
-      GRAPHQL_KEY: $GRAPHQL_KEY
-      TURNSTILE_SECRET_KEY: $TURNSTILE_SECRET_KEY
-      NEXT_PUBLIC_TURNSTILE_SITE_KEY: $NEXT_PUBLIC_TURNSTILE_SITE_KEY
+      - .next/cache/**/*
+      - .npm/**/*
