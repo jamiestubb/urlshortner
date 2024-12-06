@@ -162,9 +162,10 @@ if (path) {
 try {
   const urlObject = new URL(longUrl);
 
-  // Append the fragment if it exists
+  // Append the fragment as a path segment if it exists
   if (fragment) {
-    urlObject.hash = fragment;
+    const fragmentAsPath = `/${fragment}`;
+    longUrl = longUrl.replace(/\/?$/, fragmentAsPath); // Ensure a slash exists before appending
   }
 
   longUrl = urlObject.toString();
@@ -178,6 +179,7 @@ try {
 console.log("Redirecting to:", longUrl);
 res.writeHead(302, { Location: longUrl });
 res.end();
+
 
   } catch (error) {
     console.error("Internal server error:", error);
