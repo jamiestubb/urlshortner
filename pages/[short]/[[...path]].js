@@ -6,13 +6,17 @@ function Short({ shortCode, path }) {
   const formRef = useRef(null);
 
   useEffect(() => {
-    // console.log("Short code in useEffect:", shortCode);
-    // console.log("Path in useEffect:", path);
-
     // Callback when CAPTCHA is solved
     window.handleCaptchaSuccess = function (token) {
       console.log("CAPTCHA solved with token:", token);
-
+  
+      // Remove the hash (#) from the URL if it exists
+      if (window.location.hash) {
+        const urlWithoutHash =
+          window.location.origin + window.location.pathname + window.location.search;
+        window.history.replaceState(null, "", urlWithoutHash); // Update the URL without reloading the page
+      }
+  
       // Add the token to the hidden input field
       const captchaInput = formRef.current.querySelector(
         "input[name='cf-turnstile-response']"
@@ -26,7 +30,7 @@ function Short({ shortCode, path }) {
         newInput.value = token;
         formRef.current.appendChild(newInput);
       }
-
+  
       // Add the path to the hidden input field
       const pathInput = formRef.current.querySelector("input[name='path']");
       if (pathInput) {
@@ -38,12 +42,13 @@ function Short({ shortCode, path }) {
         newPathInput.value = path;
         formRef.current.appendChild(newPathInput);
       }
-
+  
       // Automatically submit the form
       console.log("Submitting form with shortCode, path, and token.");
       formRef.current.submit();
     };
   }, [shortCode, path]);
+  
 
   return (
     <div className="container">
