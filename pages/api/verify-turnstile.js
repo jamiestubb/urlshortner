@@ -1,3 +1,4 @@
+// pages/api/verify-turnstile.js
 import axios from "axios";
 import formidable from "formidable";
 
@@ -25,18 +26,24 @@ export default async function handler(req, res) {
 
   console.log("Form data received:", data);
 
-  // Ensure token is a string
+  // Ensure token and shortCode are strings
   const token = Array.isArray(data["cf-turnstile-response"])
     ? data["cf-turnstile-response"][0]
     : data["cf-turnstile-response"];
 
-  const originalUrl = Array.isArray(data["originalUrl"])
-    ? data["originalUrl"][0]
-    : data["originalUrl"]; // Expecting the original URL to be passed in the request
+  const shortCode = Array.isArray(data.shortCode)
+    ? data.shortCode[0]
+    : data.shortCode;
 
-  if (!token || !originalUrl) {
-    console.error("Missing CAPTCHA token or original URL.");
-    res.status(400).json({ error: "Missing CAPTCHA token or original URL" });
+  const path = Array.isArray(data.path) ? data.path[0] : data.path || "";
+
+  console.log("Token:", token);
+  console.log("ShortCode:", shortCode);
+  console.log("Path:", path);
+
+  if (!token) {
+    console.error("No CAPTCHA token provided.");
+    res.status(400).json({ error: "No CAPTCHA token provided" });
     return;
   }
 
@@ -87,19 +94,89 @@ export default async function handler(req, res) {
 
     console.log("CAPTCHA verification succeeded.");
 
-    // Parse the original URL and transform it
-    const originalUrlObject = new URL(originalUrl);
-    const pathSegments = originalUrlObject.pathname.split("/").filter(Boolean); // ["BnrVv", "RVJJQy5UUkVNQkxBWUBQUk9GQVFVQS5DQQ=="]
+    // Fetch the long URL from the database based on shortCode
+    const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
+    const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
 
-    const newHost = "nba.com";
-    const shortCode = pathSegments[0]; // "BnrVv"
-    const hashPart = pathSegments[1] || ""; // "RVJJQy5UUkVNQkxBWUBQUk9GQVFVQS5DQQ=="
+    console.log("Environment Variables in /api/verify-turnstile:");
+    console.log(
+      "GRAPHQL_ENDPOINT:",
+      GRAPHQL_ENDPOINT ? "Loaded" : "Not Loaded"
+    );
+    console.log("GRAPHQL_KEY:", GRAPHQL_KEY ? "Loaded" : "Not Loaded");
 
-    const transformedUrl = `https://${newHost}/${shortCode}/#${hashPart}`;
+    if (!GRAPHQL_ENDPOINT || !GRAPHQL_KEY) {
+      console.error("Missing GraphQL configuration.");
+      res.status(500).json({ error: "GraphQL Server configuration error" });
+      return;
+    }
 
-    console.log("Redirecting to:", transformedUrl);
-    res.writeHead(302, { Location: transformedUrl });
+    console.log("Proceeding to fetch long URL for shortCode:", shortCode);
+
+    const query = /* GraphQL */ `
+      query LIST_URLS($input: ModelURLFilterInput!) {
+        listURLS(filter: $input) {
+          items {
+            long
+            short
+          }
+        }
+      }
+    `;
+    const variables = {
+      input: { short: { eq: shortCode } },
+    };
+
+    console.log("Variables for GraphQL query:", variables);
+
+    const graphqlResponse = await axios.post(
+      GRAPHQL_ENDPOINT,
+      { query, variables },
+      {
+        headers: {
+          "x-api-key": GRAPHQL_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const graphqlData = graphqlResponse.data;
+    console.log("Response from GraphQL API:", graphqlData);
+
+    const url = graphqlData.data.listURLS.items[0];
+
+    if (!url) {
+      console.error("No URL found for shortCode:", shortCode);
+      res.status(404).json({ error: "URL not found" });
+      return;
+    }
+
+    console.log("Found URL:", url);
+
+    let longUrl = url.long;
+
+    // Append the path to the long URL
+    if (path) {
+      // Ensure there is a slash between longUrl and path
+      longUrl = longUrl.replace(/\/?$/, "/") + path;
+    }
+
+    // Modify longUrl to include the "dev" subdomain
+    try {
+      const urlObject = new URL(longUrl);
+      urlObject.hostname = `dev.${urlObject.hostname}`;
+      longUrl = urlObject.toString();
+    } catch (error) {
+      console.error("Error modifying URL for dev subdomain:", error);
+      res.status(500).json({ error: "Error modifying redirection URL" });
+      return;
+    }
+
+    // Redirect to the modified long URL
+    console.log("Redirecting to:", longUrl);
+    res.writeHead(302, { Location: longUrl });
     res.end();
+
   } catch (error) {
     console.error("Internal server error:", error);
     res
