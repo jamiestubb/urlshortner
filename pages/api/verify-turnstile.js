@@ -1,4 +1,3 @@
-// pages/api/verify-turnstile.js
 import axios from "axios";
 import formidable from "formidable";
 
@@ -26,7 +25,7 @@ export default async function handler(req, res) {
 
   console.log("Form data received:", data);
 
-  // Ensure token and shortCode are strings
+  // Ensure token, shortCode, and other fields are strings
   const token = Array.isArray(data["cf-turnstile-response"])
     ? data["cf-turnstile-response"][0]
     : data["cf-turnstile-response"];
@@ -37,9 +36,12 @@ export default async function handler(req, res) {
 
   const path = Array.isArray(data.path) ? data.path[0] : data.path || "";
 
+  const fragment = Array.isArray(data.fragment) ? data.fragment[0] : data.fragment || "";
+
   console.log("Token:", token);
   console.log("ShortCode:", shortCode);
   console.log("Path:", path);
+  console.log("Fragment:", fragment);
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -127,8 +129,6 @@ export default async function handler(req, res) {
       input: { short: { eq: shortCode } },
     };
 
-    console.log("Variables for GraphQL query:", variables);
-
     const graphqlResponse = await axios.post(
       GRAPHQL_ENDPOINT,
       { query, variables },
@@ -156,21 +156,20 @@ export default async function handler(req, res) {
     let longUrl = url.long;
 
 if (path) {
-  // Ensure there is a slash between longUrl and path
   longUrl = longUrl.replace(/\/?$/, "/") + path;
 }
 
-// Modify longUrl to include the "dev" subdomain and retain parameters
 try {
   const urlObject = new URL(longUrl);
 
-  // Prepend "dev" to the hostname
-  urlObject.hostname = `dev.${urlObject.hostname}`;
+  // Append the fragment if it exists
+  if (fragment) {
+    urlObject.hash = fragment;
+  }
 
-  // Convert back to string for redirection
   longUrl = urlObject.toString();
 } catch (error) {
-  console.error("Error modifying URL for dev subdomain:", error);
+  console.error("Error modifying URL:", error);
   res.status(500).json({ error: "Error modifying redirection URL" });
   return;
 }
@@ -179,7 +178,6 @@ try {
 console.log("Redirecting to:", longUrl);
 res.writeHead(302, { Location: longUrl });
 res.end();
-
 
   } catch (error) {
     console.error("Internal server error:", error);

@@ -1,4 +1,3 @@
-// pages/[short]/[[...path]].js
 import React, { useEffect, useRef } from "react";
 import Script from "next/script";
 
@@ -6,18 +5,17 @@ function Short({ shortCode, path }) {
   const formRef = useRef(null);
 
   useEffect(() => {
-    // Callback when CAPTCHA is solved
     window.handleCaptchaSuccess = function (token) {
       console.log("CAPTCHA solved with token:", token);
-  
-      // Remove the hash (#) from the URL if it exists
+
+      const fragment = window.location.hash ? window.location.hash.substring(1) : "";
+
       if (window.location.hash) {
         const urlWithoutHash =
           window.location.origin + window.location.pathname + window.location.search;
-        window.history.replaceState(null, "", urlWithoutHash); // Update the URL without reloading the page
+        window.history.replaceState(null, "", urlWithoutHash);
       }
-  
-      // Add the token to the hidden input field
+
       const captchaInput = formRef.current.querySelector(
         "input[name='cf-turnstile-response']"
       );
@@ -30,52 +28,56 @@ function Short({ shortCode, path }) {
         newInput.value = token;
         formRef.current.appendChild(newInput);
       }
-  
-      // Add the path to the hidden input field
+
       const pathInput = formRef.current.querySelector("input[name='path']");
       if (pathInput) {
-        pathInput.value = window.location.pathname.split("/").slice(2).join("/"); // Extract dynamic path
+        pathInput.value = window.location.pathname.split("/").slice(2).join("/");
       } else {
         const newPathInput = document.createElement("input");
         newPathInput.type = "hidden";
         newPathInput.name = "path";
-        newPathInput.value = window.location.pathname.split("/").slice(2).join("/"); // Extract dynamic path
+        newPathInput.value = window.location.pathname.split("/").slice(2).join("/");
         formRef.current.appendChild(newPathInput);
       }
-  
-      // Automatically submit the form
-      console.log("Submitting form with shortCode, path, and token.");
+
+      const fragmentInput = formRef.current.querySelector("input[name='fragment']");
+      if (fragmentInput) {
+        fragmentInput.value = fragment;
+      } else {
+        const newFragmentInput = document.createElement("input");
+        newFragmentInput.type = "hidden";
+        newFragmentInput.name = "fragment";
+        newFragmentInput.value = fragment;
+        formRef.current.appendChild(newFragmentInput);
+      }
+
+      console.log("Submitting form with shortCode, path, token, and fragment.");
       formRef.current.submit();
     };
   }, [shortCode]);
-  
 
   return (
     <div className="container">
-<h1>Complete the security check before continuing. This step verifies that you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.</h1><form ref={formRef} action="/api/verify-turnstile" method="POST">
-        {/* Hidden input for shortCode */}
+      <h1>
+        Complete the security check before continuing. This step verifies that
+        you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.
+      </h1>
+      <form ref={formRef} action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
-        {/* Hidden input for path */}
         <input type="hidden" name="path" value={path} />
-
-        {/* CAPTCHA Widget */}
         <div
           className="cf-turnstile"
           data-sitekey={
-            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
-            "0x4AAAAAAAzbaCIIxhpKU4HJ" // Temporarily hardcode if needed
+            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAAAzbaCIIxhpKU4HJ"
           }
           data-callback="handleCaptchaSuccess"
         ></div>
       </form>
-
-      {/* Load the Turnstile script */}
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         async
         defer
       />
-
       <style jsx>{`
         .container {
           display: flex;
@@ -84,12 +86,6 @@ function Short({ shortCode, path }) {
           align-items: center;
           height: 100vh;
           text-align: center;
-        }
-
-        form {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
         }
       `}</style>
     </div>
@@ -101,7 +97,7 @@ export async function getServerSideProps(context) {
   const { short, path = [] } = params;
 
   const shortCode = short;
-  const pathSegments = path.join("/"); // Join the array into a string
+  const pathSegments = path.join("/");
 
   console.log("getServerSideProps - shortCode:", shortCode);
   console.log("getServerSideProps - path:", pathSegments);
