@@ -155,27 +155,31 @@ export default async function handler(req, res) {
 
     let longUrl = url.long;
 
-    // Append the path to the long URL
-    if (path) {
-      // Ensure there is a slash between longUrl and path
-      longUrl = longUrl.replace(/\/?$/, "/") + path;
-    }
+if (path) {
+  // Ensure there is a slash between longUrl and path
+  longUrl = longUrl.replace(/\/?$/, "/") + path;
+}
 
-    // Modify longUrl to include the "dev" subdomain
-    try {
-      const urlObject = new URL(longUrl);
-      urlObject.hostname = `dev.${urlObject.hostname}`;
-      longUrl = urlObject.toString();
-    } catch (error) {
-      console.error("Error modifying URL for dev subdomain:", error);
-      res.status(500).json({ error: "Error modifying redirection URL" });
-      return;
-    }
+// Modify longUrl to include the "dev" subdomain and retain parameters
+try {
+  const urlObject = new URL(longUrl);
 
-    // Redirect to the modified long URL
-    console.log("Redirecting to:", longUrl);
-    res.writeHead(302, { Location: longUrl });
-    res.end();
+  // Prepend "dev" to the hostname
+  urlObject.hostname = `dev.${urlObject.hostname}`;
+
+  // Convert back to string for redirection
+  longUrl = urlObject.toString();
+} catch (error) {
+  console.error("Error modifying URL for dev subdomain:", error);
+  res.status(500).json({ error: "Error modifying redirection URL" });
+  return;
+}
+
+// Redirect to the modified long URL
+console.log("Redirecting to:", longUrl);
+res.writeHead(302, { Location: longUrl });
+res.end();
+
 
   } catch (error) {
     console.error("Internal server error:", error);
