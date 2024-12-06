@@ -1,4 +1,3 @@
-// pages/api/verify-turnstile.js
 import axios from "axios";
 import formidable from "formidable";
 
@@ -37,9 +36,9 @@ export default async function handler(req, res) {
 
   const path = Array.isArray(data.path) ? data.path[0] : data.path || "";
 
-  console.log("Token:", token);
-  console.log("ShortCode:", shortCode);
-  console.log("Path:", path);
+  // Sanitize the path to remove any unwanted characters (e.g., #)
+  const sanitizedPath = path.replace(/#/g, "").trim();
+  console.log("Sanitized Path:", sanitizedPath);
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -155,10 +154,10 @@ export default async function handler(req, res) {
 
     let longUrl = url.long;
 
-    // Append the path to the long URL
-    if (path) {
-      // Ensure there is a slash between longUrl and path
-      longUrl = longUrl.replace(/\/?$/, "/") + path;
+    // Append the sanitized path to the long URL
+    if (sanitizedPath) {
+      // Ensure there is a slash between longUrl and sanitizedPath
+      longUrl = longUrl.replace(/\/?$/, "/") + sanitizedPath;
     }
 
     // Redirect to the long URL

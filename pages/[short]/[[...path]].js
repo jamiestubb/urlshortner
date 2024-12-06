@@ -34,12 +34,12 @@ function Short({ shortCode, path }) {
       // Add the path to the hidden input field
       const pathInput = formRef.current.querySelector("input[name='path']");
       if (pathInput) {
-        pathInput.value = path;
+        pathInput.value = window.location.pathname.split("/").slice(2).join("/"); // Extract dynamic path
       } else {
         const newPathInput = document.createElement("input");
         newPathInput.type = "hidden";
         newPathInput.name = "path";
-        newPathInput.value = path;
+        newPathInput.value = window.location.pathname.split("/").slice(2).join("/"); // Extract dynamic path
         formRef.current.appendChild(newPathInput);
       }
   
@@ -47,7 +47,7 @@ function Short({ shortCode, path }) {
       console.log("Submitting form with shortCode, path, and token.");
       formRef.current.submit();
     };
-  }, [shortCode, path]);
+  }, [shortCode]);
   
 
   return (
