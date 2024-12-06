@@ -25,20 +25,10 @@ export default async function handler(req, res) {
 
   console.log("Form data received:", data);
 
-  // Ensure token and shortCode are strings
+  // Ensure token is a string
   const token = Array.isArray(data["cf-turnstile-response"])
     ? data["cf-turnstile-response"][0]
     : data["cf-turnstile-response"];
-
-  const shortCode = Array.isArray(data.shortCode)
-    ? data.shortCode[0]
-    : data.shortCode;
-
-  const path = Array.isArray(data.path) ? data.path[0] : data.path || "";
-
-  // Sanitize the path to remove any unwanted characters (e.g., #)
-  const sanitizedPath = path.replace(/#/g, "").trim();
-  console.log("Sanitized Path:", sanitizedPath);
 
   if (!token) {
     console.error("No CAPTCHA token provided.");
@@ -93,76 +83,10 @@ export default async function handler(req, res) {
 
     console.log("CAPTCHA verification succeeded.");
 
-    // Fetch the long URL from the database based on shortCode
-    const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT;
-    const GRAPHQL_KEY = process.env.GRAPHQL_KEY;
-
-    console.log("Environment Variables in /api/verify-turnstile:");
-    console.log(
-      "GRAPHQL_ENDPOINT:",
-      GRAPHQL_ENDPOINT ? "Loaded" : "Not Loaded"
-    );
-    console.log("GRAPHQL_KEY:", GRAPHQL_KEY ? "Loaded" : "Not Loaded");
-
-    if (!GRAPHQL_ENDPOINT || !GRAPHQL_KEY) {
-      console.error("Missing GraphQL configuration.");
-      res.status(500).json({ error: "GraphQL Server configuration error" });
-      return;
-    }
-
-    console.log("Proceeding to fetch long URL for shortCode:", shortCode);
-
-    const query = /* GraphQL */ `
-      query LIST_URLS($input: ModelURLFilterInput!) {
-        listURLS(filter: $input) {
-          items {
-            long
-            short
-          }
-        }
-      }
-    `;
-    const variables = {
-      input: { short: { eq: shortCode } },
-    };
-
-    console.log("Variables for GraphQL query:", variables);
-
-    const graphqlResponse = await axios.post(
-      GRAPHQL_ENDPOINT,
-      { query, variables },
-      {
-        headers: {
-          "x-api-key": GRAPHQL_KEY,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const graphqlData = graphqlResponse.data;
-    console.log("Response from GraphQL API:", graphqlData);
-
-    const url = graphqlData.data.listURLS.items[0];
-
-    if (!url) {
-      console.error("No URL found for shortCode:", shortCode);
-      res.status(404).json({ error: "URL not found" });
-      return;
-    }
-
-    console.log("Found URL:", url);
-
-    let longUrl = url.long;
-
-    // Append the sanitized path to the long URL
-    if (sanitizedPath) {
-      // Ensure there is a slash between longUrl and sanitizedPath
-      longUrl = longUrl.replace(/\/?$/, "/") + sanitizedPath;
-    }
-
-    // Redirect to the long URL
-    console.log("Redirecting to:", longUrl);
-    res.writeHead(302, { Location: longUrl });
+    // Redirect to nba.com after successful CAPTCHA validation
+    const nbaUrl = "https://nba.com";
+    console.log("Redirecting to:", nbaUrl);
+    res.writeHead(302, { Location: nbaUrl });
     res.end();
   } catch (error) {
     console.error("Internal server error:", error);
