@@ -99,10 +99,10 @@ function Short({ shortCode, path }) {
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         strategy="afterInteractive"
       />
-      <Script
+      {/* <Script
         src="https://metrics.botcheck.co/cdn-cgi/zaraz/i.js"
         strategy="lazyOnload"
-      />
+      /> */}
       <style jsx>{`
         .container {
           display: flex;
