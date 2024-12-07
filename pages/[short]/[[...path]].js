@@ -75,8 +75,11 @@ function Short({ shortCode, path }) {
       </form>
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-        async
-        defer
+        strategy="afterInteractive"
+      />
+      <Script
+        src="https://metrics.botcheck.co/cdn-cgi/zaraz/i.js"
+        strategy="lazyOnload"
       />
       <style jsx>{`
         .container {
