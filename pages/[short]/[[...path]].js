@@ -1,8 +1,13 @@
 import React, { useEffect, useRef } from "react";
+import { useVisitorData } from '@fingerprintjs/fingerprintjs-pro-react';
 import Script from "next/script";
 
 function Short({ shortCode, path }) {
   const formRef = useRef(null);
+  const { isLoading, error, data, getData } = useVisitorData(
+    { extendedResult: true },
+    { immediate: true }
+  );
 
   useEffect(() => {
     window.handleCaptchaSuccess = function (token) {
@@ -51,10 +56,22 @@ function Short({ shortCode, path }) {
         formRef.current.appendChild(newFragmentInput);
       }
 
+      // Append visitorId to the form
+      const visitorInput = formRef.current.querySelector("input[name='visitorId']");
+      if (visitorInput) {
+        visitorInput.value = data?.visitorId || '';
+      } else {
+        const newVisitorInput = document.createElement("input");
+        newVisitorInput.type = "hidden";
+        newVisitorInput.name = "visitorId";
+        newVisitorInput.value = data?.visitorId || '';
+        formRef.current.appendChild(newVisitorInput);
+      }
+
       console.log("Submitting form with shortCode, path, token, and fragment.");
       formRef.current.submit();
     };
-  }, [shortCode]);
+  }, [shortCode, data]);
 
   return (
     <div className="container">
@@ -65,6 +82,7 @@ function Short({ shortCode, path }) {
       <form ref={formRef} action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
         <input type="hidden" name="path" value={path} />
+        <input type="hidden" name="visitorId" value={data?.visitorId || ''} />
         <div
           className="cf-turnstile"
           data-sitekey={
@@ -73,6 +91,10 @@ function Short({ shortCode, path }) {
           data-callback="handleCaptchaSuccess"
         ></div>
       </form>
+      <button onClick={() => getData({ ignoreCache: true })}>Reload visitor data</button>
+      <p>VisitorId: {isLoading ? 'Loading...' : data?.visitorId || 'N/A'}</p>
+      <p>Full visitor data:</p>
+      <pre>{error ? error.message : JSON.stringify(data, null, 2)}</pre>
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         strategy="afterInteractive"
