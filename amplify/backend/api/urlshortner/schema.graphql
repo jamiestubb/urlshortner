@@ -1,0 +1,5 @@
+type URL @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  long: String
+  short: String
+} 

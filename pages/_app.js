@@ -9,40 +9,33 @@ export default function App({ Component, pageProps }) {
     console.log("Generated Request ID:", requestId);
 
     if (typeof window !== 'undefined') {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js'; // Use browser-compatible version
-      script.async = true;
+      fetch("https://your-api-id.amazonaws.com/dev/fingerprint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            console.error("Error from Lambda:", data.error);
+            return;
+          }
 
-      script.onload = () => {
-        if (window.FingerprintJS) {
-          window.FingerprintJS.load()
-            .then(fp => fp.get())
-            .then(result => {
-              const visitorId = result.visitorId;
-              console.log("FingerprintJS visitorId:", visitorId);
+          const sessionInfo = {
+            requestId,
+            visitorId: data.visitorId,
+          };
 
-              // Combine visitorId with requestId
-              const sessionInfo = {
-                requestId,
-                visitorId,
-              };
+          console.log("Session Info from Lambda:", sessionInfo);
 
-              console.log("Session Info:", sessionInfo);
-
-              // Optionally store in localStorage or send to your API
-              localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
-            })
-            .catch(error => {
-              console.error("Error initializing FingerprintJS:", error);
-            });
-        } else {
-          console.error("FingerprintJS not found on window object");
-        }
-      };
-
-      document.body.appendChild(script);
+          // Optionally store in localStorage or pass to subsequent logic
+          localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
+        })
+        .catch((error) => {
+          console.error("Error communicating with Lambda:", error);
+        });
     }
-  }, []); // Run only once when the app loads
+  }, []);
 
   return <Component {...pageProps} />;
 }

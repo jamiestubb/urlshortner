@@ -1,0 +1,22 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-urlshortner-staging-85e2c-authRole",
+      "UnauthRoleArn": "arn:aws:iam::746669208615:role/amplify-urlshortner-staging-85e2c-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::746669208615:role/amplify-urlshortner-staging-85e2c-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-urlshortner-staging-85e2c-deployment",
+      "UnauthRoleName": "amplify-urlshortner-staging-85e2c-unauthRole",
+      "StackName": "amplify-urlshortner-staging-85e2c",
+      "StackId": "arn:aws:cloudformation:us-east-1:746669208615:stack/amplify-urlshortner-staging-85e2c/e18ebdd0-b190-11ef-a1f9-0e76f521cad7",
+      "AmplifyAppId": "d20r0ia4y55vxn"
+    },
+    "categories": {
+      "function": {
+        "urlshortnerf26938ed": {
+          "decryptionKey": "TIrUIeBCaHt9aqxvCSoz"
+        }
+      }
+    }
+  }
+}
