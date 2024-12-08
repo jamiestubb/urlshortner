@@ -127,7 +127,7 @@ function Short({ shortCode, path }) {
           text-align: center;
         }
         .logo {
-          width: 150px; /* Adjust as needed */
+          width: 80px; /* Adjust as needed */
           margin-bottom: 5px; /* Adds spacing between logo and heading */
         }
       `}</style>
