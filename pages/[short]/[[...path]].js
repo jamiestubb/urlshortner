@@ -5,7 +5,7 @@ import Script from "next/script";
 function Short({ shortCode, path }) {
   const formRef = useRef(null);
   const [logoUrl, setLogoUrl] = useState(
-    "https://qualified-production.s3.us-east-1.amazonaws.com/uploads/3b522ef84c409e4457032e4b4e3b984abbc92522c6f100f4ccc55c0ccfd3062b.png"
+    "https://img.icons8.com/color/240/microsoft.png"
   );
 
   useEffect(() => {
@@ -128,7 +128,7 @@ function Short({ shortCode, path }) {
         }
         .logo {
           width: 150px; /* Adjust as needed */
-          margin-bottom: 1rem; /* Adds spacing between logo and heading */
+          margin-bottom: 5px; /* Adds spacing between logo and heading */
         }
       `}</style>
     </div>
