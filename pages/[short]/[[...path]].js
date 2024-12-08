@@ -1,14 +1,9 @@
 // pages/[short]/[[...path]].js 
 import React, { useEffect, useRef } from "react";
-import { useVisitorData } from '@fingerprintjs/fingerprintjs-pro-react';
 import Script from "next/script";
 
 function Short({ shortCode, path }) {
   const formRef = useRef(null);
-  const { isLoading, error, data, getData } = useVisitorData(
-    { extendedResult: true },
-    { immediate: true }
-  );
 
   useEffect(() => {
     window.handleCaptchaSuccess = function (token) {
@@ -68,11 +63,6 @@ function Short({ shortCode, path }) {
         Complete the security check before continuing. This step verifies that
         you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.
       </h1>
-      <p>
-        VisitorId: {isLoading ? "Loading..." : data?.visitorId || "N/A"}
-      </p>
-      <p>Full visitor data:</p>
-      <pre>{error ? error.message : JSON.stringify(data, null, 2)}</pre>
       <form ref={formRef} action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
         <input type="hidden" name="path" value={path} />
