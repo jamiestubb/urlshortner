@@ -37,3 +37,4 @@ next-env.d.ts
 
 fingerprint.js
 useBehavioralAnalysis.js
+score-risk.js
