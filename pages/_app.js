@@ -7,11 +7,11 @@ export default function App({ Component, pageProps }) {
       loadOptions={{
         apiKey: "iCdgQbPm5pEzzgz6olsm",
         endpoint: [
-          "https://botcheck.co/UXkHBdBoWSMpV4HM/CsFgNtjQmkY3RpK8",
+          "https://botcheck.co/s60QLi5vS8SRBTDw/RruuxpLhWeFDHE5m",
           FingerprintJSPro.defaultEndpoint
         ],
         scriptUrlPattern: [
-          "https://botcheck.co/UXkHBdBoWSMpV4HM/Cpkc0YJv5LceleCQ?apiKey=<apiKey>&version=<version>&loaderVersion=<loaderVersion>",
+          "https://botcheck.co/s60QLi5vS8SRBTDw/MLmW5prvHHtg1xKA?apiKey=<apiKey>&version=<version>&loaderVersion=<loaderVersion>",
           FingerprintJSPro.defaultScriptUrlPattern
         ]
       }}
