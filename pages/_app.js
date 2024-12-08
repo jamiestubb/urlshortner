@@ -7,18 +7,12 @@ export default function App({ Component, pageProps }) {
     if (typeof window !== 'undefined') {
       // Dynamically create the FingerprintJS script tag
       const script = document.createElement('script');
-      script.src = 'https://botcheck.co/s60QLi5vS8SRBTDw/MLmW5prvHHtg1xKA?apiKey=iCdgQbPm5pEzzgz6olsm';
+      script.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js'; // Use browser-compatible version
       script.async = true;
       script.onload = () => {
         // Once the script is loaded, initialize FingerprintJS
-        const FingerprintJS = window.FingerprintJS;
-        if (FingerprintJS) {
-          FingerprintJS.load({
-            endpoint: [
-              "https://botcheck.co/s60QLi5vS8SRBTDw/RruuxpLhWeFDHE5m",
-              FingerprintJS.defaultEndpoint,
-            ],
-          })
+        if (window.FingerprintJS) {
+          window.FingerprintJS.load()
             .then(fp => fp.get())
             .then(result => {
               const visitorId = result.visitorId;
