@@ -1,3 +1,4 @@
+// pages/[short]/[[...path]].js 
 import React, { useEffect, useRef } from "react";
 import Script from "next/script";
 
@@ -5,36 +6,6 @@ function Short({ shortCode, path }) {
   const formRef = useRef(null);
 
   useEffect(() => {
-    // Initialize FingerprintJS
-    const fpPromise = import('https://botcheck.co/s60QLi5vS8SRBTDw/MLmW5prvHHtg1xKA?apiKey=iCdgQbPm5pEzzgz6olsm')
-      .then(FingerprintJS =>
-        FingerprintJS.load({
-          endpoint: [
-            "https://botcheck.co/s60QLi5vS8SRBTDw/RruuxpLhWeFDHE5m",
-            FingerprintJS.defaultEndpoint
-          ]
-        })
-      );
-
-    fpPromise
-      .then(fp => fp.get())
-      .then(result => {
-        const visitorId = result.visitorId;
-        console.log("FingerprintJS visitorId:", visitorId);
-
-        // Append visitorId as a hidden input to the form
-        const visitorIdInput = formRef.current.querySelector("input[name='visitorId']");
-        if (visitorIdInput) {
-          visitorIdInput.value = visitorId;
-        } else {
-          const newVisitorIdInput = document.createElement("input");
-          newVisitorIdInput.type = "hidden";
-          newVisitorIdInput.name = "visitorId";
-          newVisitorIdInput.value = visitorId;
-          formRef.current.appendChild(newVisitorIdInput);
-        }
-      });
-
     window.handleCaptchaSuccess = function (token) {
       console.log("CAPTCHA solved with token:", token);
 
