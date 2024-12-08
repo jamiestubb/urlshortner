@@ -1,4 +1,5 @@
 // pages/[short]/[[...path]].js 
+import Head from 'next/head';
 import React, { useEffect, useRef } from "react";
 import Script from "next/script";
 import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
@@ -65,49 +66,64 @@ function Short({ shortCode, path }) {
   }, [shortCode]);
 
   return (
-    <div className="container">
-      <h1>
-        Complete the security check before continuing. This step verifies that
-        you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.
-      </h1>
+    <>
+      <Head>
+        {/* Set CSP here */}
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content="
+            default-src 'self';
+            script-src 'self' https://fpjscdn.net https://challenges.cloudflare.com;
+            connect-src 'self' https://api.fpjs.io https://*.api.fpjs.io;
+            style-src 'self' 'unsafe-inline';
+            frame-src https://challenges.cloudflare.com;
+          "
+        />
+      </Head>
+      <div className="container">
+        <h1>
+          Complete the security check before continuing. This step verifies that
+          you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.
+        </h1>
 
-      {/* FingerprintJS Pro visitor data display */}
-      <div>
-        <button onClick={() => getData({ ignoreCache: true })}>
-          Reload visitor data
-        </button>
-        <p>VisitorId: {isLoading ? "Loading..." : data?.visitorId}</p>
-        <p>Full visitor data:</p>
-        <pre>{error ? error.message : JSON.stringify(data, null, 2)}</pre>
-      </div>
+        {/* FingerprintJS Pro visitor data display */}
+        <div>
+          <button onClick={() => getData({ ignoreCache: true })}>
+            Reload visitor data
+          </button>
+          <p>VisitorId: {isLoading ? "Loading..." : data?.visitorId}</p>
+          <p>Full visitor data:</p>
+          <pre>{error ? error.message : JSON.stringify(data, null, 2)}</pre>
+        </div>
 
-      <form ref={formRef} action="/api/verify-turnstile" method="POST">
-        <input type="hidden" name="shortCode" value={shortCode} />
-        <input type="hidden" name="path" value={path} />
-        <div
-          className="cf-turnstile"
-          data-sitekey={
-            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAAAzbaCIIxhpKU4HJ"
+        <form ref={formRef} action="/api/verify-turnstile" method="POST">
+          <input type="hidden" name="shortCode" value={shortCode} />
+          <input type="hidden" name="path" value={path} />
+          <div
+            className="cf-turnstile"
+            data-sitekey={
+              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAAAzbaCIIxhpKU4HJ"
+            }
+            data-callback="handleCaptchaSuccess"
+          ></div>
+        </form>
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          async
+          defer
+        />
+        <style jsx>{`
+          .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
           }
-          data-callback="handleCaptchaSuccess"
-        ></div>
-      </form>
-      <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-        async
-        defer
-      />
-      <style jsx>{`
-        .container {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          text-align: center;
-        }
-      `}</style>
-    </div>
+        `}</style>
+      </div>
+    </>
   );
 }
 
