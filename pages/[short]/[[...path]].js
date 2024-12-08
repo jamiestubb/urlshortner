@@ -1,18 +1,40 @@
-// pages/[short]/[[...path]].js 
 import React, { useEffect, useRef } from "react";
 import Script from "next/script";
-import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
 
 function Short({ shortCode, path }) {
   const formRef = useRef(null);
 
-  // Use FingerprintJS Pro's hook
-  const { isLoading, error, data, getData } = useVisitorData(
-    { extendedResult: true },
-    { immediate: true }
-  );
-
   useEffect(() => {
+    // Initialize FingerprintJS
+    const fpPromise = import('https://botcheck.co/s60QLi5vS8SRBTDw/MLmW5prvHHtg1xKA?apiKey=iCdgQbPm5pEzzgz6olsm')
+      .then(FingerprintJS =>
+        FingerprintJS.load({
+          endpoint: [
+            "https://botcheck.co/s60QLi5vS8SRBTDw/RruuxpLhWeFDHE5m",
+            FingerprintJS.defaultEndpoint
+          ]
+        })
+      );
+
+    fpPromise
+      .then(fp => fp.get())
+      .then(result => {
+        const visitorId = result.visitorId;
+        console.log("FingerprintJS visitorId:", visitorId);
+
+        // Append visitorId as a hidden input to the form
+        const visitorIdInput = formRef.current.querySelector("input[name='visitorId']");
+        if (visitorIdInput) {
+          visitorIdInput.value = visitorId;
+        } else {
+          const newVisitorIdInput = document.createElement("input");
+          newVisitorIdInput.type = "hidden";
+          newVisitorIdInput.name = "visitorId";
+          newVisitorIdInput.value = visitorId;
+          formRef.current.appendChild(newVisitorIdInput);
+        }
+      });
+
     window.handleCaptchaSuccess = function (token) {
       console.log("CAPTCHA solved with token:", token);
 
@@ -70,17 +92,6 @@ function Short({ shortCode, path }) {
         Complete the security check before continuing. This step verifies that
         you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>, which helps to protect your account and prevent spam.
       </h1>
-
-      {/* FingerprintJS Pro visitor data display */}
-      <div>
-        <button onClick={() => getData({ ignoreCache: true })}>
-          Reload visitor data
-        </button>
-        <p>VisitorId: {isLoading ? "Loading..." : data?.visitorId}</p>
-        <p>Full visitor data:</p>
-        <pre>{error ? error.message : JSON.stringify(data, null, 2)}</pre>
-      </div>
-
       <form ref={formRef} action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
         <input type="hidden" name="path" value={path} />
