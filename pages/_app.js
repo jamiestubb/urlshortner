@@ -9,78 +9,38 @@ export default function App({ Component, pageProps }) {
     console.log("Generated Request ID:", requestId);
 
     if (typeof window !== 'undefined') {
-      // Load FingerprintJS for visitor ID
-      const fpScript = document.createElement('script');
-      fpScript.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js'; // FingerprintJS CDN
-      fpScript.async = true;
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js'; // Use browser-compatible version
+      script.async = true;
 
-      // Load BotD for bot detection
-      const botdScript = document.createElement('script');
-      botdScript.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/botd@3'; // BotD CDN
-      botdScript.async = true;
+      script.onload = () => {
+        if (window.FingerprintJS) {
+          window.FingerprintJS.load()
+            .then(fp => fp.get())
+            .then(result => {
+              const visitorId = result.visitorId;
+              console.log("FingerprintJS visitorId:", visitorId);
 
-      botdScript.onload = () => {
-        console.log("BotD script loaded successfully.");
-
-        if (window.BotD) {
-          console.log("Initializing BotD...");
-          const botd = window.BotD.load();
-
-          botd
-            .detect()
-            .then(botResult => {
-              console.log("BotD Result:", botResult);
-
-              // Store BotD result in localStorage
-              localStorage.setItem('botDetection', JSON.stringify(botResult));
-
-              // Load FingerprintJS visitor ID after BotD
-              fpScript.onload = () => {
-                console.log("FingerprintJS script loaded successfully.");
-
-                if (window.FingerprintJS) {
-                  console.log("Initializing FingerprintJS...");
-                  window.FingerprintJS.load()
-                    .then(fp => fp.get())
-                    .then(fpResult => {
-                      const visitorId = fpResult.visitorId;
-                      console.log("FingerprintJS visitorId:", visitorId);
-
-                      // Combine all values
-                      const sessionInfo = {
-                        requestId,
-                        visitorId,
-                        botDetection: botResult,
-                      };
-
-                      console.log("Session Info:", sessionInfo);
-
-                      // Store session info in localStorage
-                      localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
-                    })
-                    .catch(error => {
-                      console.error("Error initializing FingerprintJS:", error);
-                    });
-                } else {
-                  console.error("FingerprintJS not found on window object");
-                }
+              // Combine visitorId with requestId
+              const sessionInfo = {
+                requestId,
+                visitorId,
               };
 
-              document.body.appendChild(fpScript);
+              console.log("Session Info:", sessionInfo);
+
+              // Optionally store in localStorage or send to your API
+              localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
             })
             .catch(error => {
-              console.error("Error detecting bot:", error);
+              console.error("Error initializing FingerprintJS:", error);
             });
         } else {
-          console.error("BotD not found on window object");
+          console.error("FingerprintJS not found on window object");
         }
       };
 
-      botdScript.onerror = () => {
-        console.error("Failed to load BotD script.");
-      };
-
-      document.body.appendChild(botdScript);
+      document.body.appendChild(script);
     }
   }, []); // Run only once when the app loads
 
