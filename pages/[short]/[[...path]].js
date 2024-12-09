@@ -20,9 +20,9 @@ function Short({ shortCode, path }) {
           // Attempt to fetch a logo dynamically based on domain
           const fetchLogo = async () => {
             try {
-              const res = await fetch(`https://logo.clearbit.com/${domain}`);
+              const res = await fetch(`https://img.logo.dev/${domain}?token=pk_a1ON8zu_S9Kx_sY-dBaKHQ&size=50&format=png&retina=true`);
               if (res.ok) {
-                setLogoUrl(`https://logo.clearbit.com/${domain}`);
+                setLogoUrl(`https://img.logo.dev/${domain}?token=pk_a1ON8zu_S9Kx_sY-dBaKHQ&size=50&format=png&retina=true`);
               } else {
                 console.log("No logo found for domain, falling back to default.");
               }
@@ -127,7 +127,6 @@ function Short({ shortCode, path }) {
           text-align: center;
         }
         .logo {
-          width: 80px; /* Adjust as needed */
           margin-bottom: 5px; /* Adds spacing between logo and heading */
         }
       `}</style>
