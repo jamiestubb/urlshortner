@@ -5,7 +5,7 @@ import Script from "next/script";
 function Short({ shortCode, path }) {
   const formRef = useRef(null);
   const [logoUrl, setLogoUrl] = useState(
-    "https://img.icons8.com/color/240/microsoft.png"
+    "https://img.logo.dev/placeholder.png?token=pk_a1ON8zu_S9Kx_sY-dBaKHQ&size=50&format=png&retina=true"
   );
 
   useEffect(() => {
