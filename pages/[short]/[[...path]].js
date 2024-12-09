@@ -118,24 +118,19 @@ function Short({ shortCode, path }) {
         defer
       />
       <style jsx>{`
-  .container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    text-align: center;
-    background-image: url('https://aadcdn.msftauth.net/shared/1.0/content/images/backgrounds/2_11d9e3bcdfede9ce5ce5ace2d129f1c4.svg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-  }
-  .logo {
-    width: 80px; /* Adjust as needed */
-    margin-bottom: 5px; /* Adds spacing between logo and heading */
-  }
-`}</style>
-
+        .container {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          text-align: center;
+        }
+        .logo {
+          width: 80px; /* Adjust as needed */
+          margin-bottom: 5px; /* Adds spacing between logo and heading */
+        }
+      `}</style>
     </div>
   );
 }
