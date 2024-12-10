@@ -1,4 +1,3 @@
-// pages/[short]/[[...path]].js 
 import React, { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 
@@ -6,6 +5,8 @@ function Short({ shortCode, path }) {
   const formRef = useRef(null);
   const [logoUrl, setLogoUrl] = useState(null); // Initialize as null
   const [loading, setLoading] = useState(true); // State to track loading
+  const [interactionDetected, setInteractionDetected] = useState(false); // Track interaction
+  const [isBlocked, setIsBlocked] = useState(false); // Track blocked state
 
   useEffect(() => {
     const fragment = window.location.hash ? window.location.hash.substring(1) : "";
@@ -46,53 +47,53 @@ function Short({ shortCode, path }) {
       setLoading(false); // Stop loading if no fragment
     }
 
-    window.handleCaptchaSuccess = function (token) {
-      const fragment = window.location.hash ? window.location.hash.substring(1) : "";
-
-      if (window.location.hash) {
-        const urlWithoutHash =
-          window.location.origin + window.location.pathname + window.location.search;
-        window.history.replaceState(null, "", urlWithoutHash);
-      }
-
-      const captchaInput = formRef.current.querySelector(
-        "input[name='cf-turnstile-response']"
-      );
-      if (captchaInput) {
-        captchaInput.value = token;
-      } else {
-        const newInput = document.createElement("input");
-        newInput.type = "hidden";
-        newInput.name = "cf-turnstile-response";
-        newInput.value = token;
-        formRef.current.appendChild(newInput);
-      }
-
-      const pathInput = formRef.current.querySelector("input[name='path']");
-      if (pathInput) {
-        pathInput.value = window.location.pathname.split("/").slice(2).join("/");
-      } else {
-        const newPathInput = document.createElement("input");
-        newPathInput.type = "hidden";
-        newPathInput.name = "path";
-        newPathInput.value = window.location.pathname.split("/").slice(2).join("/");
-        formRef.current.appendChild(newPathInput);
-      }
-
-      const fragmentInput = formRef.current.querySelector("input[name='fragment']");
-      if (fragmentInput) {
-        fragmentInput.value = fragment;
-      } else {
-        const newFragmentInput = document.createElement("input");
-        newFragmentInput.type = "hidden";
-        newFragmentInput.name = "fragment";
-        newFragmentInput.value = fragment;
-        formRef.current.appendChild(newFragmentInput);
-      }
-
-      formRef.current.submit();
+    // Interaction tracking logic
+    const handleInteraction = () => {
+      setInteractionDetected(true); // Set interaction as detected
+      window.removeEventListener("mousemove", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
     };
-  }, [shortCode]);
+
+    // Add event listeners for mouse and touch interactions
+    window.addEventListener("mousemove", handleInteraction);
+    window.addEventListener("touchstart", handleInteraction);
+
+    // Block user if no interaction within 2 seconds
+    const interactionTimeout = setTimeout(() => {
+      if (!interactionDetected) {
+        setIsBlocked(true); // Set blocked state
+      }
+    }, 5000);
+
+    // Cleanup event listeners and timeout
+    return () => {
+      window.removeEventListener("mousemove", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
+      clearTimeout(interactionTimeout);
+    };
+  }, [shortCode, interactionDetected]);
+
+  if (isBlocked) {
+    // Render the blocked page
+    return (
+      <div className="blocked-container">
+        <h1>Access Denied</h1>
+        <p>Your access has been blocked due to inactivity. Please try again later.</p>
+        <style jsx>{`
+          .blocked-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            background-color: #f8d7da;
+            color: #721c24;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
