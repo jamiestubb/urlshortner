@@ -63,7 +63,7 @@ function Short({ shortCode, path }) {
       if (!interactionDetected) {
         setIsBlocked(true); // Set blocked state
       }
-    }, 5000);
+    }, 1000);
 
     // Cleanup event listeners and timeout
     return () => {
